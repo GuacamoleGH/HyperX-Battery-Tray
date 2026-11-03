@@ -8,6 +8,9 @@
 
 Keep your headset battery level visible at a glance, directly in the Windows notification area.
 
+> [!IMPORTANT]
+> **Compatibility is limited to HyperX Cloud III S Wireless headsets** whose USB dongle reports PID `02CC` or `06BE`. This is not a universal HyperX battery tool and is not currently compatible with other HyperX headsets, keyboards, mice, or USB devices.
+
 ## Highlights
 
 | | Feature |
