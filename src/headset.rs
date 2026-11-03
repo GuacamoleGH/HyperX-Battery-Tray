@@ -1,4 +1,4 @@
-//! Protocolo HID no oficial del dongle HyperX Cloud III S Wireless.
+//! Unofficial HID protocol for the HyperX Cloud III S Wireless dongle.
 use hidapi::{HidApi, HidDevice, DeviceInfo};
 use std::time::{Duration, Instant};
 
@@ -23,7 +23,7 @@ pub enum ReadError {
 
 impl std::fmt::Display for ReadError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self { Self::DongleNotFound => write!(f, "Dongle USB no detectado"), Self::InterfaceNotFound => write!(f, "Interfaz HID no encontrada"), Self::NoResponse => write!(f, "Sin respuesta de los auriculares"), Self::Disconnected => write!(f, "Auriculares apagados o sin enlace"), Self::Hid(e) => write!(f, "Error HID: {e}") }
+        match self { Self::DongleNotFound => write!(f, "USB dongle not detected"), Self::InterfaceNotFound => write!(f, "HID interface not found"), Self::NoResponse => write!(f, "No response from headset"), Self::Disconnected => write!(f, "Headset is powered off or disconnected"), Self::Hid(e) => write!(f, "Battery read error: {e}") }
     }
 }
 impl std::error::Error for ReadError {}
@@ -48,7 +48,7 @@ fn send_command(device: &HidDevice) -> Result<(), ReadError> {
 }
 fn drain(device: &HidDevice) { let mut b = [0; 64]; while device.read_timeout(&mut b, 0).unwrap_or(0) > 0 {} }
 
-/// Crea HidApi y abre/cierra el dispositivo por lectura para tolerar reconexiones USB.
+/// Creates HidApi and opens/closes the device per read to tolerate USB reconnects.
 pub fn read_battery() -> Result<BatteryReading, ReadError> {
     let api = HidApi::new().map_err(|e| ReadError::Hid(e.to_string()))?;
     let candidates: Vec<_> = api.device_list().filter(|d| d.vendor_id() == VID && PIDS.contains(&d.product_id())).collect();

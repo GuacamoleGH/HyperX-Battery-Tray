@@ -16,8 +16,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
-Name: "autostart"; Description: "Iniciar con Windows"; GroupDescription: "Opciones:"; Flags: checkedonce
-Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; Flags: unchecked
+Name: "autostart"; Description: "Start with Windows"; GroupDescription: "Options:"; Flags: checkedonce
+Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
 [Files]
 Source: "..\target\release\HyperXBatteryTray.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\target\release\hyperx-probe.exe"; DestDir: "{app}"; Flags: ignoreversion

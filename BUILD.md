@@ -1,25 +1,25 @@
-# Compilar y publicar
+# Build and release
 
-## Requisitos
+## Requirements
 
 - Windows 10/11 x64.
-- Rust estable con destino MSVC y Visual Studio Build Tools (C++).
-- Inno Setup 6 para crear el instalador.
+- Stable Rust with the MSVC target and Visual Studio Build Tools (C++).
+- Inno Setup 6 to build the installer.
 
 ## Script
 
-En PowerShell:
+In PowerShell:
 
 ```powershell
 .\build.ps1 -Version 0.1.0
 ```
 
-Ejecuta las pruebas en release, compila con `--locked`, coloca los ejecutables en `dist`, crea el instalador y escribe `dist\SHA256SUMS.txt`. Usa `-SkipInstaller` si no tienes Inno Setup.
+It runs release tests, builds with `--locked`, places the executables in `dist`, creates the installer, and writes `dist\SHA256SUMS.txt`. Use `-SkipInstaller` when Inno Setup is unavailable.
 
-Manual: `cargo test --release --locked` y `cargo build --release --locked`.
+For a manual build, run `cargo test --release --locked` and `cargo build --release --locked`.
 
-## Publicación
+## Publishing
 
-Tras validar localmente, actualiza la versión de `Cargo.toml`, crea y sube una etiqueta `vX.Y.Z`. El workflow de GitHub Actions comprueba que etiqueta y versión coinciden, instala Inno Setup y publica los cuatro archivos en [Releases](https://github.com/GuacamoleGH/HyperX-Battery-Tray/releases/latest).
+After local validation, update `Cargo.toml`, create and push a `vX.Y.Z` tag. GitHub Actions verifies that the tag matches the Cargo version, installs Inno Setup, and publishes the four artifacts on [Releases](https://github.com/GuacamoleGH/HyperX-Battery-Tray/releases/latest).
 
-Problemas habituales: instala Build Tools si `link.exe` no aparece; instala Inno Setup si falta `ISCC.exe`; y usa `hyperx-probe.exe` para comprobar si el dongle expone la colección HID esperada.
+Common problems: install Build Tools if `link.exe` is missing; install Inno Setup if `ISCC.exe` is missing; use `hyperx-probe.exe` to verify that the dongle exposes the expected HID collection.

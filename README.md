@@ -1,32 +1,32 @@
 # HyperX Battery Tray
 
-Indicador de batería en la bandeja de Windows 10/11 x64 para los auriculares HyperX Cloud III S Wireless. No instala ni necesita NGENUITY ni la aplicación de HyperX.
+A Windows 10/11 x64 system-tray battery indicator for HyperX Cloud III S Wireless headsets. It does not install or require NGENUITY or the HyperX application.
 
-## Instalación
+## Installation
 
-Descarga `HyperXBatteryTray-Setup-*.exe` de [la última versión](https://github.com/GuacamoleGH/HyperX-Battery-Tray/releases/latest), ejecútalo y conecta el dongle USB. El instalador funciona por usuario y puede iniciar la aplicación con Windows.
+Download `HyperXBatteryTray-Setup-*.exe` from the [latest release](https://github.com/GuacamoleGH/HyperX-Battery-Tray/releases/latest), run it, and connect the USB dongle. The installer works per user and can start the application with Windows.
 
-Los ejecutables no están firmados. Windows SmartScreen o un antivirus pueden mostrar una advertencia o falso positivo; descarga únicamente desde las Releases oficiales y comprueba `SHA256SUMS.txt`.
+The executables are unsigned. Windows SmartScreen or antivirus software may show a warning or false positive; only download from the official Releases and verify `SHA256SUMS.txt`.
 
-## Uso
+## Usage
 
-El icono puede mostrar batería y porcentaje (predeterminado), solo batería o solo número. Verde indica nivel normal, ámbar 40% o menos, rojo el umbral bajo (20% predeterminado) y gris que no hay datos. El tooltip muestra `HyperX Cloud III S: 71%`.
+The icon can show a battery with percentage (default), battery only, or a large number only. Green means normal level, amber means 40% or lower, red means the low threshold (20% by default), and grey means no data. The tooltip reads `HyperX Cloud III S: 71%`.
 
-Los estados posibles son: `Batería: 71%`, `Auriculares apagados o sin enlace`, `Dongle USB no detectado`, `Interfaz HID no encontrada (ver registro)`, `Sin respuesta de los auriculares` y `Error leyendo la batería (ver registro)`.
+Possible states are: `Battery: 71%`, `Headset is powered off or disconnected`, `USB dongle not detected`, `HID interface not found (see log)`, `No response from headset`, and `Battery read error (see log)`.
 
-La configuración se guarda en `%APPDATA%\HyperXBatteryTray\settings.json` y el registro, con rotación a 256 KB, en `log.txt`.
+Settings are saved in `%APPDATA%\HyperXBatteryTray\settings.json`; logs rotate at 256 KB and are stored in `log.txt`.
 
-## Protocolo
+## Protocol
 
-Es un protocolo HID **no oficial**, procedente de un comentario del issue 486 de HeadsetControl. Se filtra el VID `03F0`, PID `02CC/06BE`, `usage_page 0x01C0` y `usage 0x0001`; se envía `0C 02 03 01 00 06` y se recibe el porcentaje en el byte 6. La tensión solo se acepta entre 2,5 y 5 V. El estado de carga aún no se conoce.
+This is an **unofficial** HID protocol from a comment on HeadsetControl issue 486. The application filters VID `03F0`, PID `02CC/06BE`, `usage_page 0x01C0`, and `usage 0x0001`; it sends `0C 02 03 01 00 06` and receives the percentage in byte 6. Voltage is accepted only between 2.5 and 5 V. Charging state is not known yet.
 
-Si no funciona, ejecuta `hyperx-probe.exe` desde una consola y adjunta su lista de interfaces y salida al crear un issue. Prueba con los auriculares encendidos y el dongle directamente conectado.
+If it does not work, run `hyperx-probe.exe` in a console and include its interface list and output when opening an issue. Use it with the headset powered on and the dongle directly connected.
 
-## Estructura
+## Structure
 
-- `src/headset.rs`: protocolo HID y lectura resiliente a reconexiones.
-- `src/icons.rs`: iconos de píxeles generados en memoria.
-- `src/bin/probe.rs`: diagnóstico de consola.
-- `installer/`: instalador Inno Setup.
+- `src/headset.rs`: HID protocol and USB-reconnect-tolerant reads.
+- `src/icons.rs`: in-memory pixel-generated icons.
+- `src/bin/probe.rs`: console diagnostics.
+- `installer/`: Inno Setup installer.
 
-Inspirado por [razer-battery-report](https://github.com/xzeldon/razer-battery-report). Código bajo licencia [MIT](LICENSE), © GuacamoleGH.
+Inspired by [razer-battery-report](https://github.com/xzeldon/razer-battery-report). Released under the [MIT License](LICENSE), © GuacamoleGH.

@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["GuacamoleGH"]
 license = "MIT"
 repository = "https://github.com/GuacamoleGH/HyperX-Battery-Tray"
-description = "Indicador de batería en bandeja para HyperX Cloud III S Wireless"
+description = "System tray battery indicator for HyperX Cloud III S Wireless"
 autobins = false
 
 [lib]

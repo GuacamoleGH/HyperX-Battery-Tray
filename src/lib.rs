@@ -1,4 +1,4 @@
-//! Componentes compartidos por la aplicación y la utilidad de diagnóstico.
+//! Shared components for the application and diagnostic utility.
 pub mod headset;
 pub mod icons;
 pub mod logger;
