@@ -1,5 +1,7 @@
 #define MyAppName "HyperX Battery Tray"
-#define MyAppVersion GetStringParam('MyAppVersion', '0.1.0')
+#ifndef MyAppVersion
+  #define MyAppVersion "0.1.0"
+#endif
 #define MyAppExeName "HyperXBatteryTray.exe"
 [Setup]
 AppId={{7FA5A9E8-9D35-4E20-B79B-EC26E6D96514}
