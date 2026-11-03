@@ -1,4 +1,4 @@
-param([string]$Version = "0.1.0", [switch]$SkipInstaller)
+param([string]$Version = "0.1.1", [switch]$SkipInstaller)
 $ErrorActionPreference = 'Stop'
 cargo test --release --locked
 cargo build --release --locked
