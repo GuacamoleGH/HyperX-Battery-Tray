@@ -7,7 +7,8 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{GetSystemMetrics, SM_CXSMICON}
 #[derive(Clone, Debug)]
 enum UserEvent { Reading(Result<headset::BatteryReading, headset::ReadError>), Refresh, SetMode(DisplayMode), SetInterval(u64), SetThreshold(u8), ToggleAlerts, ToggleAutostart, OpenLog, Quit }
 
-fn tray_size() -> u32 { unsafe { GetSystemMetrics(SM_CXSMICON).max(32) as u32 } }
+/// Draw at the exact notification-area size so Windows does not blur a downscaled icon.
+fn tray_size() -> u32 { unsafe { GetSystemMetrics(SM_CXSMICON).max(16) as u32 } }
 fn settings_path() -> PathBuf { std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(std::env::temp_dir).join("HyperXBatteryTray").join("settings.json") }
 
 pub fn run() {
