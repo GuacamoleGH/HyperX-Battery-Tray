@@ -1,4 +1,5 @@
 //! Shared components for the application and diagnostic utility.
+pub mod fonts;
 pub mod headset;
 pub mod icons;
 pub mod logger;
