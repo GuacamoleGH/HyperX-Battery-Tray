@@ -63,12 +63,9 @@ fn small_number(p: &mut IconPixels, text: &str, x: i32, y: i32, scale: i32, c: [
         if ch.is_ascii_digit() {
             small_digit(p, ch - b'0', cur_x, y, scale, c);
             cur_x += 4 * scale;
-        } else {
-            rect(p, cur_x, y, 2 * scale, scale, c);
-            rect(p, cur_x + scale, y + scale, scale, scale, c);
-            rect(p, cur_x, y + 2 * scale, scale, scale, c);
-            rect(p, cur_x, y + 4 * scale, scale, scale, c);
-            cur_x += 3 * scale;
+        } else if ch == b'-' {
+            rect(p, cur_x, y + 2 * scale, 3 * scale, scale, c);
+            cur_x += 4 * scale;
         }
     }
 }
@@ -91,7 +88,11 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
     let scale = (s / 16).max(1);
     let border = [225, 230, 238, 255];
     let bg_inner = [28, 30, 35, 220];
-    let text_col = [245, 248, 255, 255];
+    let text_col = if percent.is_some() {
+        [245, 248, 255, 255]
+    } else {
+        [175, 180, 190, 255]
+    };
 
     match mode {
         DisplayMode::IconPercent => {
@@ -122,7 +123,7 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
                 }
             }
 
-            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "?".into());
+            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "--".into());
             let num_w = if text == "100" { 9 } else { text.len() as i32 * 4 - 1 } * scale;
             let num_x = (s - num_w) / 2;
             let extra_y = if s >= 20 { scale } else { 0 };
@@ -158,7 +159,7 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
                 }
             }
 
-            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "?".into());
+            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "--".into());
             let num_w = if text == "100" { 9 } else { text.len() as i32 * 4 - 1 } * scale;
             let avail_left = bx + bw + scale;
             let avail_w = s - avail_left;
@@ -196,7 +197,7 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
         }
         DisplayMode::Number => {
             // Percentage only, centered
-            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "?".into());
+            let text = percent.map(|v| v.to_string()).unwrap_or_else(|| "--".into());
             let num_w = if text == "100" { 9 } else { text.len() as i32 * 4 - 1 } * scale;
             let num_x = (s - num_w) / 2;
             let num_y = (s - 5 * scale) / 2;
