@@ -26,10 +26,11 @@ pub fn run() {
     let low_30 = CheckMenuItem::with_id("low_30", "30%", true, settings.low_threshold == 30, None);
     low_battery.append_items(&[&low_10, &low_20, &low_30]).expect("low battery menu");
     let show = Submenu::new("Show in tray", true);
-    let show_percent = CheckMenuItem::with_id("mode_percent", "Battery and percentage", true, settings.display_mode == DisplayMode::IconPercent, None);
+    let show_percent = CheckMenuItem::with_id("mode_percent", "Horizontal (battery + %)", true, settings.display_mode == DisplayMode::IconPercent, None);
+    let show_vertical = CheckMenuItem::with_id("mode_vertical", "Vertical (battery + %)", true, settings.display_mode == DisplayMode::VerticalPercent, None);
     let show_icon = CheckMenuItem::with_id("mode_icon", "Battery only", true, settings.display_mode == DisplayMode::Icon, None);
     let show_number = CheckMenuItem::with_id("mode_number", "Percentage only", true, settings.display_mode == DisplayMode::Number, None);
-    show.append_items(&[&show_percent, &show_icon, &show_number]).expect("display menu");
+    show.append_items(&[&show_percent, &show_vertical, &show_icon, &show_number]).expect("display menu");
     let interval = Submenu::new("Refresh every", true);
     let every_30 = CheckMenuItem::with_id("interval_30", "30 seconds", true, settings.interval_s == 30, None);
     let every_60 = CheckMenuItem::with_id("interval_60", "1 minute", true, settings.interval_s == 60, None);
@@ -42,12 +43,12 @@ pub fn run() {
     updates.append(&update_status).expect("updates menu");
     let open_log = MenuItem::with_id("open_log", "Open log", true, None);
     let about = Submenu::new("About", true);
-    let about_text = MenuItem::with_id("about_text", "HyperX Battery Tray v0.1.3", false, None);
+    let about_text = MenuItem::with_id("about_text", concat!("HyperX Battery Tray v", env!("CARGO_PKG_VERSION")), false, None);
     about.append(&about_text).expect("about menu");
     let quit = MenuItem::with_id("quit", "Exit", true, None);
     menu.append_items(&[&status, &refresh, &PredefinedMenuItem::separator(), &alerts, &low_battery, &show, &interval, &autostart_item, &updates, &PredefinedMenuItem::separator(), &open_log, &about, &quit]).expect("menu");
     let menu_proxy = proxy.clone();
-    MenuEvent::set_event_handler(Some(move |event: MenuEvent| { let action = match event.id.as_ref() { "refresh" => UserEvent::Refresh, "alerts" => UserEvent::ToggleAlerts, "low_10" => UserEvent::SetThreshold(10), "low_20" => UserEvent::SetThreshold(20), "low_30" => UserEvent::SetThreshold(30), "mode_percent" => UserEvent::SetMode(DisplayMode::IconPercent), "mode_icon" => UserEvent::SetMode(DisplayMode::Icon), "mode_number" => UserEvent::SetMode(DisplayMode::Number), "interval_30" => UserEvent::SetInterval(30), "interval_60" => UserEvent::SetInterval(60), "interval_120" => UserEvent::SetInterval(120), "interval_300" => UserEvent::SetInterval(300), "autostart" => UserEvent::ToggleAutostart, "open_log" => UserEvent::OpenLog, "quit" => UserEvent::Quit, _ => return }; let _ = menu_proxy.send_event(action); }));
+    MenuEvent::set_event_handler(Some(move |event: MenuEvent| { let action = match event.id.as_ref() { "refresh" => UserEvent::Refresh, "alerts" => UserEvent::ToggleAlerts, "low_10" => UserEvent::SetThreshold(10), "low_20" => UserEvent::SetThreshold(20), "low_30" => UserEvent::SetThreshold(30), "mode_percent" => UserEvent::SetMode(DisplayMode::IconPercent), "mode_vertical" => UserEvent::SetMode(DisplayMode::VerticalPercent), "mode_icon" => UserEvent::SetMode(DisplayMode::Icon), "mode_number" => UserEvent::SetMode(DisplayMode::Number), "interval_30" => UserEvent::SetInterval(30), "interval_60" => UserEvent::SetInterval(60), "interval_120" => UserEvent::SetInterval(120), "interval_300" => UserEvent::SetInterval(300), "autostart" => UserEvent::ToggleAutostart, "open_log" => UserEvent::OpenLog, "quit" => UserEvent::Quit, _ => return }; let _ = menu_proxy.send_event(action); }));
     let initial_proxy = proxy.clone();
     thread::spawn(move || { let _ = initial_proxy.send_event(UserEvent::Reading(headset::read_battery())); });
     let interval_seconds = Arc::new(AtomicU64::new(settings.interval_s));
@@ -64,7 +65,7 @@ pub fn run() {
         match event {
             Event::NewEvents(StartCause::Init) => { let pixels = icons::make_icon(icon_size, settings.display_mode, last, settings.low_threshold); let icon = tray_icon::Icon::from_rgba(pixels.rgba, pixels.width, pixels.height).expect("icon"); tray = Some(TrayIconBuilder::new().with_menu(Box::new(menu.take().expect("menu"))).with_tooltip("HyperX Cloud III S: no data").with_icon(icon).build().expect("tray icon")); }
             Event::UserEvent(UserEvent::Refresh) => { let reader = proxy.clone(); thread::spawn(move || { let _ = reader.send_event(UserEvent::Reading(headset::read_battery())); }); }
-            Event::UserEvent(UserEvent::SetMode(mode)) => { settings.display_mode = mode; show_percent.set_checked(mode == DisplayMode::IconPercent); show_icon.set_checked(mode == DisplayMode::Icon); show_number.set_checked(mode == DisplayMode::Number); let _ = settings.save(&settings_file); if let Some(current) = tray.as_ref() { let pixels = icons::make_icon(icon_size, mode, last, settings.low_threshold); let _ = current.set_icon(Some(tray_icon::Icon::from_rgba(pixels.rgba, pixels.width, pixels.height).expect("icon"))); } }
+            Event::UserEvent(UserEvent::SetMode(mode)) => { settings.display_mode = mode; show_percent.set_checked(mode == DisplayMode::IconPercent); show_vertical.set_checked(mode == DisplayMode::VerticalPercent); show_icon.set_checked(mode == DisplayMode::Icon); show_number.set_checked(mode == DisplayMode::Number); let _ = settings.save(&settings_file); if let Some(current) = tray.as_ref() { let pixels = icons::make_icon(icon_size, mode, last, settings.low_threshold); let _ = current.set_icon(Some(tray_icon::Icon::from_rgba(pixels.rgba, pixels.width, pixels.height).expect("icon"))); } }
             Event::UserEvent(UserEvent::SetInterval(seconds)) => { settings.interval_s = seconds; interval_seconds.store(seconds, Ordering::Relaxed); every_30.set_checked(seconds == 30); every_60.set_checked(seconds == 60); every_120.set_checked(seconds == 120); every_300.set_checked(seconds == 300); let _ = settings.save(&settings_file); }
             Event::UserEvent(UserEvent::SetThreshold(threshold)) => { settings.low_threshold = threshold; low_10.set_checked(threshold == 10); low_20.set_checked(threshold == 20); low_30.set_checked(threshold == 30); let _ = settings.save(&settings_file); }
             Event::UserEvent(UserEvent::ToggleAlerts) => { settings.notify_low = !settings.notify_low; alerts.set_checked(settings.notify_low); let _ = settings.save(&settings_file); }
