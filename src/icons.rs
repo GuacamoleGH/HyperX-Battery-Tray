@@ -1,6 +1,6 @@
 //! Crisp, anti-aliased tray icons using Segoe UI Bold subpixel alpha font tables.
 
-use crate::{fonts::AA_FONT_MAX15, settings::DisplayMode};
+use crate::{fonts::AA_FONT_MAX16, settings::DisplayMode};
 
 #[derive(Debug, Clone)]
 pub struct IconPixels {
@@ -41,21 +41,21 @@ fn fill_rect(p: &mut IconPixels, x: i32, y: i32, w: i32, h: i32, rgb: [u8; 3], a
 fn draw_large_num(p: &mut IconPixels, text: &str, sx: i32, sy: i32, rgb: [u8; 3]) {
     if text == "100" {
         let mut cur_x = sx;
-        // Digit 1 (3px wide)
-        for r in 0..14 {
+        // Digit 1 (3px wide), rows 1..=14
+        for r in 1..=14 {
             blend_pixel(p, cur_x + 1, sy + r, rgb, 255);
-            if (1..=4).contains(&r) {
+            if (2..=5).contains(&r) {
                 blend_pixel(p, cur_x, sy + r, rgb, 180);
             }
-            if r >= 11 {
+            if r >= 12 {
                 blend_pixel(p, cur_x, sy + r, rgb, 255);
                 blend_pixel(p, cur_x + 2, sy + r, rgb, 255);
             }
         }
         cur_x += 4;
         // Digit 0 (5px wide)
-        let rows0 = &AA_FONT_MAX15[0];
-        for r in 0..15 {
+        let rows0 = &AA_FONT_MAX16[0];
+        for r in 0..16 {
             for col in 1..6 {
                 let a = rows0[r][col];
                 blend_pixel(p, cur_x + col as i32 - 1, sy + r as i32, rgb, a);
@@ -63,7 +63,7 @@ fn draw_large_num(p: &mut IconPixels, text: &str, sx: i32, sy: i32, rgb: [u8; 3]
         }
         cur_x += 6;
         // Digit 0 (5px wide)
-        for r in 0..15 {
+        for r in 0..16 {
             for col in 1..6 {
                 let a = rows0[r][col];
                 blend_pixel(p, cur_x + col as i32 - 1, sy + r as i32, rgb, a);
@@ -72,7 +72,8 @@ fn draw_large_num(p: &mut IconPixels, text: &str, sx: i32, sy: i32, rgb: [u8; 3]
         return;
     }
     if text == "--" {
-        for r in 6..=8 {
+        // Centered vertically on rows 7..=8 (center 7.5, perfectly centered in 16px)
+        for r in 7..=8 {
             for c in 0..5 {
                 let a = if c == 0 || c == 4 { 180 } else { 255 };
                 blend_pixel(p, sx + c, sy + r, rgb, a);
@@ -85,8 +86,8 @@ fn draw_large_num(p: &mut IconPixels, text: &str, sx: i32, sy: i32, rgb: [u8; 3]
     for ch in text.bytes() {
         if ch.is_ascii_digit() {
             let d = (ch - b'0') as usize;
-            let rows = &AA_FONT_MAX15[d];
-            for r in 0..15 {
+            let rows = &AA_FONT_MAX16[d];
+            for r in 0..16 {
                 for col in 0..7 {
                     let a = rows[r][col];
                     blend_pixel(p, cur_x + col as i32, sy + r as i32, rgb, a);
@@ -119,7 +120,7 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
 
     match mode {
         DisplayMode::Number => {
-            // Huge, bold, smooth anti-aliased Segoe UI numbers!
+            // Huge, bold, smooth anti-aliased Segoe UI numbers, perfectly centered vertically and horizontally!
             let num_w = if text == "100" {
                 15
             } else if text == "--" {
@@ -130,7 +131,7 @@ pub fn make_icon(size: u32, mode: DisplayMode, percent: Option<u8>, low: u8) -> 
                 7
             };
             let sx = (s - num_w) / 2;
-            let sy = (s - 15) / 2;
+            let sy = (s - 16) / 2;
             draw_large_num(&mut p, &text, sx, sy, white);
         }
         DisplayMode::Icon => {
@@ -182,8 +183,19 @@ mod tests {
     }
 
     #[test]
-    fn one_hundred_fits() {
-        let p = make_icon(16, DisplayMode::Number, Some(100), 20);
-        assert_eq!(p.width, 16);
+    fn number_is_vertically_centered_in_16x16() {
+        for v in [0, 50, 64, 99, 100] {
+            let p = make_icon(16, DisplayMode::Number, Some(v), 20);
+            // Rows 0 and 15 must have 0 alpha (perfect 1px top and bottom margin)
+            let row0_alpha: u32 = (0..16).map(|x| p.rgba[((0 * 16 + x) * 4 + 3) as usize] as u32).sum();
+            let row15_alpha: u32 = (0..16).map(|x| p.rgba[((15 * 16 + x) * 4 + 3) as usize] as u32).sum();
+            assert_eq!(row0_alpha, 0, "value {v} should have top margin on row 0");
+            assert_eq!(row15_alpha, 0, "value {v} should have bottom margin on row 15");
+            // Rows 1 and 14 must have non-zero alpha (active glyph height is 14)
+            let row1_alpha: u32 = (0..16).map(|x| p.rgba[((1 * 16 + x) * 4 + 3) as usize] as u32).sum();
+            let row14_alpha: u32 = (0..16).map(|x| p.rgba[((14 * 16 + x) * 4 + 3) as usize] as u32).sum();
+            assert!(row1_alpha > 0, "value {v} should be active on row 1");
+            assert!(row14_alpha > 0, "value {v} should be active on row 14");
+        }
     }
 }
