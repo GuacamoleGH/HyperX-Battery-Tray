@@ -85,11 +85,9 @@ pub fn run() {
     low_battery.append_items(&[&low_10, &low_20, &low_30]).expect("low battery menu");
 
     let show = Submenu::new("Show in tray", true);
-    let show_percent = CheckMenuItem::with_id("mode_percent", "Horizontal (battery + %)", true, settings.display_mode == DisplayMode::IconPercent, None);
-    let show_vertical = CheckMenuItem::with_id("mode_vertical", "Vertical (battery + %)", true, settings.display_mode == DisplayMode::VerticalPercent, None);
     let show_icon = CheckMenuItem::with_id("mode_icon", "Battery only", true, settings.display_mode == DisplayMode::Icon, None);
     let show_number = CheckMenuItem::with_id("mode_number", "Percentage only", true, settings.display_mode == DisplayMode::Number, None);
-    show.append_items(&[&show_percent, &show_vertical, &show_icon, &show_number]).expect("display menu");
+    show.append_items(&[&show_icon, &show_number]).expect("display menu");
 
     let interval = Submenu::new("Refresh every", true);
     let every_30 = CheckMenuItem::with_id("interval_30", "30 seconds", true, settings.interval_s == 30, None);
@@ -135,8 +133,6 @@ pub fn run() {
             "low_10" => UserEvent::SetThreshold(10),
             "low_20" => UserEvent::SetThreshold(20),
             "low_30" => UserEvent::SetThreshold(30),
-            "mode_percent" => UserEvent::SetMode(DisplayMode::IconPercent),
-            "mode_vertical" => UserEvent::SetMode(DisplayMode::VerticalPercent),
             "mode_icon" => UserEvent::SetMode(DisplayMode::Icon),
             "mode_number" => UserEvent::SetMode(DisplayMode::Number),
             "interval_30" => UserEvent::SetInterval(30),
@@ -220,8 +216,6 @@ pub fn run() {
             }
             Event::UserEvent(UserEvent::SetMode(mode)) => {
                 settings.display_mode = mode;
-                show_percent.set_checked(mode == DisplayMode::IconPercent);
-                show_vertical.set_checked(mode == DisplayMode::VerticalPercent);
                 show_icon.set_checked(mode == DisplayMode::Icon);
                 show_number.set_checked(mode == DisplayMode::Number);
                 let _ = settings.save(&settings_file);

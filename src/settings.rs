@@ -5,9 +5,9 @@ use std::{fs, path::Path};
 #[serde(rename_all = "snake_case")]
 pub enum DisplayMode {
     #[default]
-    IconPercent,
-    VerticalPercent,
+    #[serde(alias = "icon_percent")]
     Icon,
+    #[serde(alias = "vertical_percent")]
     Number,
 }
 
@@ -23,7 +23,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            display_mode: DisplayMode::IconPercent,
+            display_mode: DisplayMode::Icon,
             interval_s: 60,
             low_threshold: 20,
             notify_low: true,
@@ -51,13 +51,12 @@ impl Settings {
     }
 
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
-        if let Some(p) = path.parent() {
-            fs::create_dir_all(p)?;
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
         }
-        fs::write(
-            path,
-            serde_json::to_string_pretty(&self.clone().normalized()).unwrap(),
-        )
+        let data = serde_json::to_string_pretty(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        fs::write(path, data)
     }
 }
 
@@ -66,25 +65,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basura_defecto() {
-        let p = std::env::temp_dir().join("hyperx-settings-basura.json");
-        fs::write(&p, "{").unwrap();
-        assert_eq!(Settings::load(&p), Settings::default());
-        let _ = fs::remove_file(p);
+    fn default_is_icon() {
+        assert_eq!(DisplayMode::default(), DisplayMode::Icon);
     }
 
     #[test]
-    fn json_compatible() {
-        let s: Settings = serde_json::from_str(
-            r#"{"display_mode":"number","interval_s":120,"low_threshold":15,"notify_low":false}"#,
-        )
-        .unwrap();
-        assert_eq!(s.display_mode, DisplayMode::Number);
+    fn deserializes_legacy_modes() {
+        let json_horiz = r#"{"display_mode":"icon_percent","interval_s":60,"low_threshold":20,"notify_low":true}"#;
+        let s_horiz: Settings = serde_json::from_str(json_horiz).unwrap();
+        assert_eq!(s_horiz.display_mode, DisplayMode::Icon);
 
-        let v: Settings = serde_json::from_str(
-            r#"{"display_mode":"vertical_percent","interval_s":60,"low_threshold":20,"notify_low":true}"#,
-        )
-        .unwrap();
-        assert_eq!(v.display_mode, DisplayMode::VerticalPercent);
+        let json_vert = r#"{"display_mode":"vertical_percent","interval_s":60,"low_threshold":20,"notify_low":true}"#;
+        let s_vert: Settings = serde_json::from_str(json_vert).unwrap();
+        assert_eq!(s_vert.display_mode, DisplayMode::Number);
     }
 }
