@@ -5,3 +5,5 @@ pub mod logger;
 pub mod settings;
 #[cfg(windows)]
 pub mod autostart;
+#[cfg(windows)]
+pub mod updater;
